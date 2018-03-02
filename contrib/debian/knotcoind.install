@@ -1,1 +1,2 @@
-src/knotcoind usr/bin
+usr/local/bin/knotcoind usr/bin
+usr/local/bin/knotcoin-cli usr/bin

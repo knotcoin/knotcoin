@@ -1,21 +1,35 @@
-#ifndef KNOTTCOINADDRESSVALIDATOR_H
-#define KNOTTCOINADDRESSVALIDATOR_H
+// Copyright (c) 2011-2014 The Knotcoin Core developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef KNOTTCOIN_QT_KNOTTCOINADDRESSVALIDATOR_H
+#define KNOTTCOIN_QT_KNOTTCOINADDRESSVALIDATOR_H
 
 #include <QValidator>
 
-/** Base48 entry widget validator.
-   Corrects near-miss characters and refuses characters that are no part of base48.
+/** Base58 entry widget validator, checks for valid characters and
+ * removes some whitespace.
  */
-class KnotcoinAddressValidator : public QValidator
+class KnotcoinAddressEntryValidator : public QValidator
 {
     Q_OBJECT
 
 public:
-    explicit KnotcoinAddressValidator(QObject *parent = 0);
+    explicit KnotcoinAddressEntryValidator(QObject *parent);
 
     State validate(QString &input, int &pos) const;
-
-    static const int MaxAddressLength = 35;
 };
 
-#endif // KNOTTCOINADDRESSVALIDATOR_H
+/** Knotcoin address widget validator, checks for a valid knotcoin address.
+ */
+class KnotcoinAddressCheckValidator : public QValidator
+{
+    Q_OBJECT
+
+public:
+    explicit KnotcoinAddressCheckValidator(QObject *parent);
+
+    State validate(QString &input, int &pos) const;
+};
+
+#endif // KNOTTCOIN_QT_KNOTTCOINADDRESSVALIDATOR_H

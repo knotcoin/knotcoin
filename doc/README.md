@@ -1,46 +1,82 @@
-Knotcoin 0.8.5 BETA
-====================
-
-Copyright (c) 2009-2013 Knotcoin Developers
-
-Distributed under the MIT/X11 software license, see the accompanying
-file COPYING or http://www.opensource.org/licenses/mit-license.php.
-This product includes software developed by the OpenSSL Project for use in the [OpenSSL Toolkit](http://www.openssl.org/). This product includes
-cryptographic software written by Eric Young ([eay@cryptsoft.com](mailto:eay@cryptsoft.com)), and UPnP software written by Thomas Bernard.
-
-
-Intro
----------------------
-Knotcoin is a free open source peer-to-peer electronic cash system that is
-completely decentralized, without the need for a central server or trusted
-parties.  Users hold the crypto keys to their own money and transact directly
-with each other, with the help of a P2P network to check for double-spending.
-
+Knotcoin Core
+=============
 
 Setup
 ---------------------
-You need the Qt4 run-time libraries to run Knotcoin-Qt. On Debian or Ubuntu:
-	`sudo apt-get install libqtgui4`
+Knotcoin Core is the original Knotcoin client and it builds the backbone of the network. It downloads and, by default, stores the entire history of Knotcoin transactions (which is currently more than 100 GBs); depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more.
+
+To download Knotcoin Core, visit [knotcoincore.org](https://knotcoincore.org/en/releases/).
+
+Running
+---------------------
+The following are some helpful notes on how to run Knotcoin on your native platform.
+
+### Unix
 
 Unpack the files into a directory and run:
 
-- bin/32/knotcoin-qt (GUI, 32-bit)
-- bin/32/knotcoind (headless, 32-bit)
-- bin/64/knotcoin-qt (GUI, 64-bit)
-- bin/64/knotcoind (headless, 64-bit)
+- `bin/knotcoin-qt` (GUI) or
+- `bin/knotcoind` (headless)
 
-See the documentation at the [Knotcoin Wiki](https://en.knotcoin.it/wiki/Main_Page)
+### Windows
+
+Unpack the files into a directory, and then run knotcoin-qt.exe.
+
+### OS X
+
+Drag Knotcoin-Core to your applications folder, and then run Knotcoin-Core.
+
+### Need Help?
+
+* See the documentation at the [Knotcoin Wiki](https://en.knotcoin.it/wiki/Main_Page)
 for help and more information.
+* Ask for help on [#knotcoin](http://webchat.freenode.net?channels=knotcoin) on Freenode. If you don't have an IRC client use [webchat here](http://webchat.freenode.net?channels=knotcoin).
+* Ask for help on the [KnotcoinTalk](https://knotcointalk.org/) forums, in the [Technical Support board](https://knotcointalk.org/index.php?board=4.0).
 
-
-Other Pages
+Building
 ---------------------
+The following are developer notes on how to build Knotcoin on your native platform. They are not complete guides, but include notes on the necessary libraries, compile flags, etc.
+
+- [Dependencies](dependencies.md)
+- [OS X Build Notes](build-osx.md)
 - [Unix Build Notes](build-unix.md)
-- [OSX Build Notes](build-osx.md)
-- [Windows Build Notes](build-msw.md)
-- [Coding Guidelines](coding.md)
-- [Release Process](release-process.md)
+- [Windows Build Notes](build-windows.md)
+- [OpenBSD Build Notes](build-openbsd.md)
+- [Gitian Building Guide](gitian-building.md)
+
+Development
+---------------------
+The Knotcoin repo's [root README](/README.md) contains relevant information on the development process and automated testing.
+
+- [Developer Notes](developer-notes.md)
 - [Release Notes](release-notes.md)
-- [Multiwallet Qt Development](multiwallet-qt.md)
-- [Unit Tests](unit-tests.md)
+- [Release Process](release-process.md)
+- [Source Code Documentation (External Link)](https://dev.visucore.com/knotcoin/doxygen/)
 - [Translation Process](translation_process.md)
+- [Translation Strings Policy](translation_strings_policy.md)
+- [Travis CI](travis-ci.md)
+- [Unauthenticated REST Interface](REST-interface.md)
+- [Shared Libraries](shared-libraries.md)
+- [BIPS](bips.md)
+- [Dnsseed Policy](dnsseed-policy.md)
+- [Benchmarking](benchmarking.md)
+
+### Resources
+* Discuss on the [KnotcoinTalk](https://knotcointalk.org/) forums, in the [Development & Technical Discussion board](https://knotcointalk.org/index.php?board=6.0).
+* Discuss project-specific development on #knotcoin-core-dev on Freenode. If you don't have an IRC client use [webchat here](http://webchat.freenode.net/?channels=knotcoin-core-dev).
+* Discuss general Knotcoin development on #knotcoin-dev on Freenode. If you don't have an IRC client use [webchat here](http://webchat.freenode.net/?channels=knotcoin-dev).
+
+### Miscellaneous
+- [Assets Attribution](assets-attribution.md)
+- [Files](files.md)
+- [Fuzz-testing](fuzzing.md)
+- [Reduce Traffic](reduce-traffic.md)
+- [Tor Support](tor.md)
+- [Init Scripts (systemd/upstart/openrc)](init.md)
+- [ZMQ](zmq.md)
+
+License
+---------------------
+Distributed under the [MIT software license](/COPYING).
+This product includes software developed by the OpenSSL Project for use in the [OpenSSL Toolkit](https://www.openssl.org/). This product includes
+cryptographic software written by Eric Young ([eay@cryptsoft.com](mailto:eay@cryptsoft.com)), and UPnP software written by Thomas Bernard.

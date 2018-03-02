@@ -1,0 +1,33 @@
+# /etc/conf.d/knotcoind: config file for /etc/init.d/knotcoind
+
+# Config file location
+#KNOTTCOIND_CONFIGFILE="/etc/knotcoin/knotcoin.conf"
+
+# What directory to write pidfile to?  (created and owned by $KNOTTCOIND_USER)
+#KNOTTCOIND_PIDDIR="/var/run/knotcoind"
+
+# What filename to give the pidfile
+#KNOTTCOIND_PIDFILE="${KNOTTCOIND_PIDDIR}/knotcoind.pid"
+
+# Where to write knotcoind data (be mindful that the blockchain is large)
+#KNOTTCOIND_DATADIR="/var/lib/knotcoind"
+
+# User and group to own knotcoind process
+#KNOTTCOIND_USER="knotcoin"
+#KNOTTCOIND_GROUP="knotcoin"
+
+# Path to knotcoind executable
+#KNOTTCOIND_BIN="/usr/bin/knotcoind"
+
+# Nice value to run knotcoind under
+#KNOTTCOIND_NICE=0
+
+# Additional options (avoid -conf and -datadir, use flags above)
+#KNOTTCOIND_OPTS=""
+
+# The timeout in seconds OpenRC will wait for knotcoind to terminate
+# after a SIGTERM has been raised.
+# Note that this will be mapped as argument to start-stop-daemon's
+# '--retry' option, which means you can specify a retry schedule
+# here. For more information see man 8 start-stop-daemon.
+KNOTTCOIND_SIGTERM_TIMEOUT=60

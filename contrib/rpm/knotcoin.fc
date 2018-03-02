@@ -1,0 +1,8 @@
+/usr/bin/knotcoin-cli		--	gen_context(system_u:object_r:knotcoin_exec_t,s0)
+/usr/sbin/knotcoind		--	gen_context(system_u:object_r:knotcoin_exec_t,s0)
+/usr/lib(64)?/knotcoin/knotcoind		--	gen_context(system_u:object_r:knotcoin_exec_t,s0)
+
+/etc/knotcoin(/.*)?		gen_context(system_u:object_r:knotcoin_conf_t,s0)
+/var/lib/knotcoin(/.*)?		gen_context(system_u:object_r:knotcoin_var_lib_t,s0)
+
+(/var)?/run/knotcoind(/.*)?   gen_context(system_u:object_r:knotcoin_var_run_t,s0)

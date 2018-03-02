@@ -1,0 +1,67 @@
+#!/bin/bash
+#
+#  knotcoind The knotcoin core server.
+#
+#
+# chkconfig: 345 80 20
+# description: knotcoind
+# processname: knotcoind
+#
+
+# Source function library.
+. /etc/init.d/functions
+
+# you can override defaults in /etc/sysconfig/knotcoind, see below
+if [ -f /etc/sysconfig/knotcoind ]; then
+        . /etc/sysconfig/knotcoind
+fi
+
+RETVAL=0
+
+prog=knotcoind
+# you can override the lockfile via KNOTTCOIND_LOCKFILE in /etc/sysconfig/knotcoind
+lockfile=${KNOTTCOIND_LOCKFILE-/var/lock/subsys/knotcoind}
+
+# knotcoind defaults to /usr/bin/knotcoind, override with KNOTTCOIND_BIN
+knotcoind=${KNOTTCOIND_BIN-/usr/bin/knotcoind}
+
+# knotcoind opts default to -disablewallet, override with KNOTTCOIND_OPTS
+knotcoind_opts=${KNOTTCOIND_OPTS--disablewallet}
+
+start() {
+    echo -n $"Starting $prog: "
+    daemon $DAEMONOPTS $knotcoind $knotcoind_opts
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch $lockfile
+    return $RETVAL
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    killproc $prog
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && rm -f $lockfile
+    return $RETVAL
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status $prog
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    *)
+        echo "Usage: service $prog {start|stop|status|restart}"
+        exit 1
+        ;;
+esac

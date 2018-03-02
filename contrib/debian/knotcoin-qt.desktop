@@ -1,12 +1,14 @@
 [Desktop Entry]
-Encoding=UTF-8
-Name=Knotcoin
-Comment=Knotcoin P2P Cryptocurrency
+Version=1.0
+Name=Knotcoin Core
+Comment=Connect to the Knotcoin P2P Network
+Comment[de]=Verbinde mit dem Knotcoin peer-to-peer Netzwerk
 Comment[fr]=Knotcoin, monnaie virtuelle cryptographique pair à pair
 Comment[tr]=Knotcoin, eşten eşe kriptografik sanal para birimi
-Exec=/usr/bin/knotcoin-qt %u
+Exec=knotcoin-qt %u
 Terminal=false
 Type=Application
-Icon=/usr/share/pixmaps/knotcoin128.png
+Icon=knotcoin128
 MimeType=x-scheme-handler/knotcoin;
-Categories=Office;
+Categories=Office;Finance;
+StartupWMClass=Knotcoin-qt

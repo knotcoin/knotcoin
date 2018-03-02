@@ -1,1 +1,2 @@
 contrib/knotcoind.bash-completion	knotcoind
+contrib/knotcoin-cli.bash-completion	knotcoin-cli

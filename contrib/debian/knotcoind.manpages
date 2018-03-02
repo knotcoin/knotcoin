@@ -1,2 +1,2 @@
-debian/manpages/knotcoind.1
-debian/manpages/knotcoin.conf.5
+doc/man/knotcoind.1
+doc/man/knotcoin-cli.1

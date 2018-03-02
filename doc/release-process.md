@@ -1,164 +1,309 @@
 Release Process
 ====================
 
-* update translations (ping wumpus, Diapolo or tcatm on IRC)
-* see https://github.com/knotcoin/knotcoin/blob/master/doc/translation_process.md#syncing-with-transifex
+Before every release candidate:
 
-* * *
+* Update translations (ping wumpus on IRC) see [translation_process.md](https://github.com/knotcoin/knotcoin/blob/master/doc/translation_process.md#synchronising-translations).
 
-###update (commit) version in sources
+* Update manpages, see [gen-manpages.sh](https://github.com/knotcoin/knotcoin/blob/master/contrib/devtools/README.md#gen-manpagessh).
 
+Before every minor and major release:
 
-	knotcoin-qt.pro
-	contrib/verifysfbinaries/verify.sh
-	doc/README*
-	share/setup.nsi
-	src/clientversion.h (change CLIENT_VERSION_IS_RELEASE to true)
+* Update [bips.md](bips.md) to account for changes since the last release.
+* Update version in `configure.ac` (don't forget to set `CLIENT_VERSION_IS_RELEASE` to `true`)
+* Write release notes (see below)
+* Update `src/chainparams.cpp` nMinimumChainWork with information from the getblockchaininfo rpc.
+* Update `src/chainparams.cpp` defaultAssumeValid  with information from the getblockhash rpc.
+  - The selected value must not be orphaned so it may be useful to set the value two blocks back from the tip.
+  - Testnet should be set some tens of thousands back from the tip due to reorgs there.
+  - This update should be reviewed with a reindex-chainstate with assumevalid=0 to catch any defect
+     that causes rejection of blocks in the past history.
 
-###tag version in git
+Before every major release:
 
-	git tag -a v0.8.0
+* Update hardcoded [seeds](/contrib/seeds/README.md), see [this pull request](https://github.com/knotcoin/knotcoin/pull/7415) for an example.
+* Update [`BLOCK_CHAIN_SIZE`](/src/qt/intro.cpp) to the current size plus some overhead.
+* Update `src/chainparams.cpp` chainTxData with statistics about the transaction count and rate.
+* Update version of `contrib/gitian-descriptors/*.yml`: usually one'd want to do this on master after branching off the release - but be sure to at least do it before a new major release
 
-###write release notes. git shortlog helps a lot, for example:
+### First time / New builders
 
-	git shortlog --no-merges v0.7.2..v0.8.0
+If you're using the automated script (found in [contrib/gitian-build.sh](/contrib/gitian-build.sh)), then at this point you should run it with the "--setup" command. Otherwise ignore this.
 
-* * *
+Check out the source code in the following directory hierarchy.
 
-##perform gitian builds
+    cd /path/to/your/toplevel/build
+    git clone https://github.com/knotcoin-core/gitian.sigs.git
+    git clone https://github.com/knotcoin-core/knotcoin-detached-sigs.git
+    git clone https://github.com/devrandom/gitian-builder.git
+    git clone https://github.com/knotcoin/knotcoin.git
 
- From a directory containing the knotcoin source, gitian-builder and gitian.sigs
-  
-	export SIGNER=(your gitian key, ie bluematt, sipa, etc)
-	export VERSION=0.8.0
-	cd ./gitian-builder
+### Knotcoin maintainers/release engineers, suggestion for writing release notes
 
- Fetch and build inputs: (first time, or when dependency versions change)
+Write release notes. git shortlog helps a lot, for example:
 
-	mkdir -p inputs; cd inputs/
-	wget 'http://miniupnp.free.fr/files/download.php?file=miniupnpc-1.6.tar.gz' -O miniupnpc-1.6.tar.gz
-	wget 'http://www.openssl.org/source/openssl-1.0.1c.tar.gz'
-	wget 'http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz'
-	wget 'http://zlib.net/zlib-1.2.6.tar.gz'
-	wget 'ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng-1.5.9.tar.gz'
-	wget 'http://fukuchi.org/works/qrencode/qrencode-3.2.0.tar.bz2'
-	wget 'http://downloads.sourceforge.net/project/boost/boost/1.50.0/boost_1_50_0.tar.bz2'
-	wget 'http://releases.qt-project.org/qt4/source/qt-everywhere-opensource-src-4.8.3.tar.gz'
-	cd ..
-	./bin/gbuild ../knotcoin/contrib/gitian-descriptors/boost-win32.yml
-	mv build/out/boost-win32-1.50.0-gitian2.zip inputs/
-	./bin/gbuild ../knotcoin/contrib/gitian-descriptors/qt-win32.yml
-	mv build/out/qt-win32-4.8.3-gitian-r1.zip inputs/
-	./bin/gbuild ../knotcoin/contrib/gitian-descriptors/deps-win32.yml
-	mv build/out/knotcoin-deps-0.0.5.zip inputs/
+    git shortlog --no-merges v(current version, e.g. 0.7.2)..v(new version, e.g. 0.8.0)
 
- Build knotcoind and knotcoin-qt on Linux32, Linux64, and Win32:
-  
-	./bin/gbuild --commit knotcoin=v${VERSION} ../knotcoin/contrib/gitian-descriptors/gitian.yml
-	./bin/gsign --signer $SIGNER --release ${VERSION} --destination ../gitian.sigs/ ../knotcoin/contrib/gitian-descriptors/gitian.yml
-	pushd build/out
-	zip -r knotcoin-${VERSION}-linux-gitian.zip *
-	mv knotcoin-${VERSION}-linux-gitian.zip ../../
-	popd
-	./bin/gbuild --commit knotcoin=v${VERSION} ../knotcoin/contrib/gitian-descriptors/gitian-win32.yml
-	./bin/gsign --signer $SIGNER --release ${VERSION}-win32 --destination ../gitian.sigs/ ../knotcoin/contrib/gitian-descriptors/gitian-win32.yml
-	pushd build/out
-	zip -r knotcoin-${VERSION}-win32-gitian.zip *
-	mv knotcoin-${VERSION}-win32-gitian.zip ../../
-	popd
+(or ping @wumpus on IRC, he has specific tooling to generate the list of merged pulls
+and sort them into categories based on labels)
 
-  Build output expected:
+Generate list of authors:
 
-  1. linux 32-bit and 64-bit binaries + source (knotcoin-${VERSION}-linux-gitian.zip)
-  2. windows 32-bit binary, installer + source (knotcoin-${VERSION}-win32-gitian.zip)
-  3. Gitian signatures (in gitian.sigs/${VERSION}[-win32]/(your gitian key)/
+    git log --format='%aN' "$*" | sort -ui | sed -e 's/^/- /'
 
-repackage gitian builds for release as stand-alone zip/tar/installer exe
+Tag version (or release candidate) in git
 
-**Linux .tar.gz:**
+    git tag -s v(new version, e.g. 0.8.0)
 
-	unzip knotcoin-${VERSION}-linux-gitian.zip -d knotcoin-${VERSION}-linux
-	tar czvf knotcoin-${VERSION}-linux.tar.gz knotcoin-${VERSION}-linux
-	rm -rf knotcoin-${VERSION}-linux
+### Setup and perform Gitian builds
 
-**Windows .zip and setup.exe:**
+If you're using the automated script (found in [contrib/gitian-build.sh](/contrib/gitian-build.sh)), then at this point you should run it with the "--build" command. Otherwise ignore this.
 
-	unzip knotcoin-${VERSION}-win32-gitian.zip -d knotcoin-${VERSION}-win32
-	mv knotcoin-${VERSION}-win32/knotcoin-*-setup.exe .
-	zip -r knotcoin-${VERSION}-win32.zip knotcoin-${VERSION}-win32
-	rm -rf knotcoin-${VERSION}-win32
+Setup Gitian descriptors:
 
-**Perform Mac build:**
+    pushd ./knotcoin
+    export SIGNER=(your Gitian key, ie bluematt, sipa, etc)
+    export VERSION=(new version, e.g. 0.8.0)
+    git fetch
+    git checkout v${VERSION}
+    popd
 
-  OSX binaries are created by Gavin Andresen on a 32-bit, OSX 10.6 machine.
+Ensure your gitian.sigs are up-to-date if you wish to gverify your builds against other Gitian signatures.
 
-	qmake RELEASE=1 USE_UPNP=1 USE_QRCODE=1 knotcoin-qt.pro
-	make
-	export QTDIR=/opt/local/share/qt4  # needed to find translations/qt_*.qm files
-	T=$(contrib/qt_translations.py $QTDIR/translations src/qt/locale)
-	python2.7 share/qt/clean_mac_info_plist.py
-	python2.7 contrib/macdeploy/macdeployqtplus Knotcoin-Qt.app -add-qt-tr $T -dmg -fancy contrib/macdeploy/fancy.plist
+    pushd ./gitian.sigs
+    git pull
+    popd
 
- Build output expected: Knotcoin-Qt.dmg
+Ensure gitian-builder is up-to-date:
 
-###Next steps:
+    pushd ./gitian-builder
+    git pull
+    popd
 
-* Code-sign Windows -setup.exe (in a Windows virtual machine) and
-  OSX Knotcoin-Qt.app (Note: only Gavin has the code-signing keys currently)
+### Fetch and create inputs: (first time, or when dependency versions change)
 
-* upload builds to SourceForge
+    pushd ./gitian-builder
+    mkdir -p inputs
+    wget -P inputs https://knotcoincore.org/cfields/osslsigncode-Backports-to-1.7.1.patch
+    wget -P inputs http://downloads.sourceforge.net/project/osslsigncode/osslsigncode/osslsigncode-1.7.1.tar.gz
+    popd
 
-* create SHA256SUMS for builds, and PGP-sign it
+Create the OS X SDK tarball, see the [OS X readme](README_osx.md) for details, and copy it into the inputs directory.
 
-* update knotcoin.org version
-  make sure all OS download links go to the right versions
+### Optional: Seed the Gitian sources cache and offline git repositories
 
-* update forum version
+By default, Gitian will fetch source files as needed. To cache them ahead of time:
 
-* update wiki download links
+    pushd ./gitian-builder
+    make -C ../knotcoin/depends download SOURCES_PATH=`pwd`/cache/common
+    popd
 
-* update wiki changelog: [https://en.knotcoin.it/wiki/Changelog](https://en.knotcoin.it/wiki/Changelog)
+Only missing files will be fetched, so this is safe to re-run for each build.
+
+NOTE: Offline builds must use the --url flag to ensure Gitian fetches only from local URLs. For example:
+
+    pushd ./gitian-builder
+    ./bin/gbuild --url knotcoin=/path/to/knotcoin,signature=/path/to/sigs {rest of arguments}
+    popd
+
+The gbuild invocations below <b>DO NOT DO THIS</b> by default.
+
+### Build and sign Knotcoin Core for Linux, Windows, and OS X:
+
+    pushd ./gitian-builder
+    ./bin/gbuild --num-make 2 --memory 3000 --commit knotcoin=v${VERSION} ../knotcoin/contrib/gitian-descriptors/gitian-linux.yml
+    ./bin/gsign --signer $SIGNER --release ${VERSION}-linux --destination ../gitian.sigs/ ../knotcoin/contrib/gitian-descriptors/gitian-linux.yml
+    mv build/out/knotcoin-*.tar.gz build/out/src/knotcoin-*.tar.gz ../
+
+    ./bin/gbuild --num-make 2 --memory 3000 --commit knotcoin=v${VERSION} ../knotcoin/contrib/gitian-descriptors/gitian-win.yml
+    ./bin/gsign --signer $SIGNER --release ${VERSION}-win-unsigned --destination ../gitian.sigs/ ../knotcoin/contrib/gitian-descriptors/gitian-win.yml
+    mv build/out/knotcoin-*-win-unsigned.tar.gz inputs/knotcoin-win-unsigned.tar.gz
+    mv build/out/knotcoin-*.zip build/out/knotcoin-*.exe ../
+
+    ./bin/gbuild --num-make 2 --memory 3000 --commit knotcoin=v${VERSION} ../knotcoin/contrib/gitian-descriptors/gitian-osx.yml
+    ./bin/gsign --signer $SIGNER --release ${VERSION}-osx-unsigned --destination ../gitian.sigs/ ../knotcoin/contrib/gitian-descriptors/gitian-osx.yml
+    mv build/out/knotcoin-*-osx-unsigned.tar.gz inputs/knotcoin-osx-unsigned.tar.gz
+    mv build/out/knotcoin-*.tar.gz build/out/knotcoin-*.dmg ../
+    popd
+
+Build output expected:
+
+  1. source tarball (`knotcoin-${VERSION}.tar.gz`)
+  2. linux 32-bit and 64-bit dist tarballs (`knotcoin-${VERSION}-linux[32|64].tar.gz`)
+  3. windows 32-bit and 64-bit unsigned installers and dist zips (`knotcoin-${VERSION}-win[32|64]-setup-unsigned.exe`, `knotcoin-${VERSION}-win[32|64].zip`)
+  4. OS X unsigned installer and dist tarball (`knotcoin-${VERSION}-osx-unsigned.dmg`, `knotcoin-${VERSION}-osx64.tar.gz`)
+  5. Gitian signatures (in `gitian.sigs/${VERSION}-<linux|{win,osx}-unsigned>/(your Gitian key)/`)
+
+### Verify other gitian builders signatures to your own. (Optional)
+
+Add other gitian builders keys to your gpg keyring, and/or refresh keys.
+
+    gpg --import knotcoin/contrib/gitian-keys/*.pgp
+    gpg --refresh-keys
+
+Verify the signatures
+
+    pushd ./gitian-builder
+    ./bin/gverify -v -d ../gitian.sigs/ -r ${VERSION}-linux ../knotcoin/contrib/gitian-descriptors/gitian-linux.yml
+    ./bin/gverify -v -d ../gitian.sigs/ -r ${VERSION}-win-unsigned ../knotcoin/contrib/gitian-descriptors/gitian-win.yml
+    ./bin/gverify -v -d ../gitian.sigs/ -r ${VERSION}-osx-unsigned ../knotcoin/contrib/gitian-descriptors/gitian-osx.yml
+    popd
+
+### Next steps:
 
 Commit your signature to gitian.sigs:
 
-	pushd gitian.sigs
-	git add ${VERSION}/${SIGNER}
-	git add ${VERSION}-win32/${SIGNER}
-	git commit -a
-	git push  # Assuming you can push to the gitian.sigs tree
-	popd
+    pushd gitian.sigs
+    git add ${VERSION}-linux/${SIGNER}
+    git add ${VERSION}-win-unsigned/${SIGNER}
+    git add ${VERSION}-osx-unsigned/${SIGNER}
+    git commit -a
+    git push  # Assuming you can push to the gitian.sigs tree
+    popd
 
--------------------------------------------------------------------------
+Codesigner only: Create Windows/OS X detached signatures:
+- Only one person handles codesigning. Everyone else should skip to the next step.
+- Only once the Windows/OS X builds each have 3 matching signatures may they be signed with their respective release keys.
 
-### After 3 or more people have gitian-built, repackage gitian-signed zips:
+Codesigner only: Sign the osx binary:
 
-From a directory containing knotcoin source, gitian.sigs and gitian zips
+    transfer knotcoin-osx-unsigned.tar.gz to osx for signing
+    tar xf knotcoin-osx-unsigned.tar.gz
+    ./detached-sig-create.sh -s "Key ID"
+    Enter the keychain password and authorize the signature
+    Move signature-osx.tar.gz back to the gitian host
 
-	export VERSION=0.5.1
-	mkdir knotcoin-${VERSION}-linux-gitian
-	pushd knotcoin-${VERSION}-linux-gitian
-	unzip ../knotcoin-${VERSION}-linux-gitian.zip
-	mkdir gitian
-	cp ../knotcoin/contrib/gitian-downloader/*.pgp ./gitian/
-	for signer in $(ls ../gitian.sigs/${VERSION}/); do
-	 cp ../gitian.sigs/${VERSION}/${signer}/knotcoin-build.assert ./gitian/${signer}-build.assert
-	 cp ../gitian.sigs/${VERSION}/${signer}/knotcoin-build.assert.sig ./gitian/${signer}-build.assert.sig
-	done
-	zip -r knotcoin-${VERSION}-linux-gitian.zip *
-	cp knotcoin-${VERSION}-linux-gitian.zip ../
-	popd
-	mkdir knotcoin-${VERSION}-win32-gitian
-	pushd knotcoin-${VERSION}-win32-gitian
-	unzip ../knotcoin-${VERSION}-win32-gitian.zip
-	mkdir gitian
-	cp ../knotcoin/contrib/gitian-downloader/*.pgp ./gitian/
-	for signer in $(ls ../gitian.sigs/${VERSION}-win32/); do
-	 cp ../gitian.sigs/${VERSION}-win32/${signer}/knotcoin-build.assert ./gitian/${signer}-build.assert
-	 cp ../gitian.sigs/${VERSION}-win32/${signer}/knotcoin-build.assert.sig ./gitian/${signer}-build.assert.sig
-	done
-	zip -r knotcoin-${VERSION}-win32-gitian.zip *
-	cp knotcoin-${VERSION}-win32-gitian.zip ../
-	popd
+Codesigner only: Sign the windows binaries:
 
-- Upload gitian zips to SourceForge
-- Celebrate 
+    tar xf knotcoin-win-unsigned.tar.gz
+    ./detached-sig-create.sh -key /path/to/codesign.key
+    Enter the passphrase for the key when prompted
+    signature-win.tar.gz will be created
+
+Codesigner only: Commit the detached codesign payloads:
+
+    cd ~/knotcoin-detached-sigs
+    checkout the appropriate branch for this release series
+    rm -rf *
+    tar xf signature-osx.tar.gz
+    tar xf signature-win.tar.gz
+    git add -a
+    git commit -m "point to ${VERSION}"
+    git tag -s v${VERSION} HEAD
+    git push the current branch and new tag
+
+Non-codesigners: wait for Windows/OS X detached signatures:
+
+- Once the Windows/OS X builds each have 3 matching signatures, they will be signed with their respective release keys.
+- Detached signatures will then be committed to the [knotcoin-detached-sigs](https://github.com/knotcoin-core/knotcoin-detached-sigs) repository, which can be combined with the unsigned apps to create signed binaries.
+
+Create (and optionally verify) the signed OS X binary:
+
+    pushd ./gitian-builder
+    ./bin/gbuild -i --commit signature=v${VERSION} ../knotcoin/contrib/gitian-descriptors/gitian-osx-signer.yml
+    ./bin/gsign --signer $SIGNER --release ${VERSION}-osx-signed --destination ../gitian.sigs/ ../knotcoin/contrib/gitian-descriptors/gitian-osx-signer.yml
+    ./bin/gverify -v -d ../gitian.sigs/ -r ${VERSION}-osx-signed ../knotcoin/contrib/gitian-descriptors/gitian-osx-signer.yml
+    mv build/out/knotcoin-osx-signed.dmg ../knotcoin-${VERSION}-osx.dmg
+    popd
+
+Create (and optionally verify) the signed Windows binaries:
+
+    pushd ./gitian-builder
+    ./bin/gbuild -i --commit signature=v${VERSION} ../knotcoin/contrib/gitian-descriptors/gitian-win-signer.yml
+    ./bin/gsign --signer $SIGNER --release ${VERSION}-win-signed --destination ../gitian.sigs/ ../knotcoin/contrib/gitian-descriptors/gitian-win-signer.yml
+    ./bin/gverify -v -d ../gitian.sigs/ -r ${VERSION}-win-signed ../knotcoin/contrib/gitian-descriptors/gitian-win-signer.yml
+    mv build/out/knotcoin-*win64-setup.exe ../knotcoin-${VERSION}-win64-setup.exe
+    mv build/out/knotcoin-*win32-setup.exe ../knotcoin-${VERSION}-win32-setup.exe
+    popd
+
+Commit your signature for the signed OS X/Windows binaries:
+
+    pushd gitian.sigs
+    git add ${VERSION}-osx-signed/${SIGNER}
+    git add ${VERSION}-win-signed/${SIGNER}
+    git commit -a
+    git push  # Assuming you can push to the gitian.sigs tree
+    popd
+
+### After 3 or more people have gitian-built and their results match:
+
+- Create `SHA256SUMS.asc` for the builds, and GPG-sign it:
+
+```bash
+sha256sum * > SHA256SUMS
+```
+
+The list of files should be:
+```
+knotcoin-${VERSION}-aarch64-linux-gnu.tar.gz
+knotcoin-${VERSION}-arm-linux-gnueabihf.tar.gz
+knotcoin-${VERSION}-i686-pc-linux-gnu.tar.gz
+knotcoin-${VERSION}-x86_64-linux-gnu.tar.gz
+knotcoin-${VERSION}-osx64.tar.gz
+knotcoin-${VERSION}-osx.dmg
+knotcoin-${VERSION}.tar.gz
+knotcoin-${VERSION}-win32-setup.exe
+knotcoin-${VERSION}-win32.zip
+knotcoin-${VERSION}-win64-setup.exe
+knotcoin-${VERSION}-win64.zip
+```
+The `*-debug*` files generated by the gitian build contain debug symbols
+for troubleshooting by developers. It is assumed that anyone that is interested
+in debugging can run gitian to generate the files for themselves. To avoid
+end-user confusion about which file to pick, as well as save storage
+space *do not upload these to the knotcoin.org server, nor put them in the torrent*.
+
+- GPG-sign it, delete the unsigned file:
+```
+gpg --digest-algo sha256 --clearsign SHA256SUMS # outputs SHA256SUMS.asc
+rm SHA256SUMS
+```
+(the digest algorithm is forced to sha256 to avoid confusion of the `Hash:` header that GPG adds with the SHA256 used for the files)
+Note: check that SHA256SUMS itself doesn't end up in SHA256SUMS, which is a spurious/nonsensical entry.
+
+- Upload zips and installers, as well as `SHA256SUMS.asc` from last step, to the knotcoin.org server
+  into `/var/www/bin/knotcoin-core-${VERSION}`
+
+- A `.torrent` will appear in the directory after a few minutes. Optionally help seed this torrent. To get the `magnet:` URI use:
+```bash
+transmission-show -m <torrent file>
+```
+Insert the magnet URI into the announcement sent to mailing lists. This permits
+people without access to `knotcoin.org` to download the binary distribution.
+Also put it into the `optional_magnetlink:` slot in the YAML file for
+knotcoin.org (see below for knotcoin.org update instructions).
+
+- Update knotcoin.org version
+
+  - First, check to see if the Knotcoin.org maintainers have prepared a
+    release: https://github.com/knotcoin-dot-org/knotcoin.org/labels/Releases
+
+      - If they have, it will have previously failed their Travis CI
+        checks because the final release files weren't uploaded.
+        Trigger a Travis CI rebuild---if it passes, merge.
+
+  - If they have not prepared a release, follow the Knotcoin.org release
+    instructions: https://github.com/knotcoin-dot-org/knotcoin.org#release-notes
+
+  - After the pull request is merged, the website will automatically show the newest version within 15 minutes, as well
+    as update the OS download links. Ping @saivann/@harding (saivann/harding on Freenode) in case anything goes wrong
+
+- Announce the release:
+
+  - knotcoin-dev and knotcoin-core-dev mailing list
+
+  - Knotcoin Core announcements list https://knotcoincore.org/en/list/announcements/join/
+
+  - knotcoincore.org blog post
+
+  - Update title of #knotcoin on Freenode IRC
+
+  - Optionally twitter, reddit /r/Knotcoin, ... but this will usually sort out itself
+
+  - Notify BlueMatt so that he can start building [the PPAs](https://launchpad.net/~knotcoin/+archive/ubuntu/knotcoin)
+
+  - Archive release notes for the new version to `doc/release-notes/` (branch `master` and branch of the release)
+
+  - Create a [new GitHub release](https://github.com/knotcoin/knotcoin/releases/new) with a link to the archived release notes.
+
+  - Celebrate

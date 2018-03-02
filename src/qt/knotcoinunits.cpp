@@ -1,4 +1,10 @@
-#include "knotcoinunits.h"
+// Copyright (c) 2011-2017 The Knotcoin Core developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#include <qt/knotcoinunits.h>
+
+#include <primitives/transaction.h>
 
 #include <QStringList>
 
@@ -30,14 +36,23 @@ bool KnotcoinUnits::valid(int unit)
     }
 }
 
-QString KnotcoinUnits::name(int unit)
+QString KnotcoinUnits::longName(int unit)
 {
     switch(unit)
     {
     case KNOT: return QString("KNOT");
     case mKNOT: return QString("mKNOT");
-    case uKNOT: return QString::fromUtf8("μKNOT");
+    case uKNOT: return QString::fromUtf8("µKNOT (bits)");
     default: return QString("???");
+    }
+}
+
+QString KnotcoinUnits::shortName(int unit)
+{
+    switch(unit)
+    {
+    case uKNOT: return QString::fromUtf8("bits");
+    default:   return longName(unit);
     }
 }
 
@@ -46,8 +61,8 @@ QString KnotcoinUnits::description(int unit)
     switch(unit)
     {
     case KNOT: return QString("Knotcoins");
-    case mKNOT: return QString("Milli-Knotcoins (1 / 1,000)");
-    case uKNOT: return QString("Micro-Knotcoins (1 / 1,000,000)");
+    case mKNOT: return QString("Milli-Knotcoins (1 / 1" THIN_SP_UTF8 "000)");
+    case uKNOT: return QString("Micro-Knotcoins (bits) (1 / 1" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
     default: return QString("???");
     }
 }
@@ -63,17 +78,6 @@ qint64 KnotcoinUnits::factor(int unit)
     }
 }
 
-int KnotcoinUnits::amountDigits(int unit)
-{
-    switch(unit)
-    {
-    case KNOT: return 8; // 21,000,000 (# digits, without commas)
-    case mKNOT: return 11; // 21,000,000,000
-    case uKNOT: return 14; // 21,000,000,000,000
-    default: return 0;
-    }
-}
-
 int KnotcoinUnits::decimals(int unit)
 {
     switch(unit)
@@ -85,12 +89,13 @@ int KnotcoinUnits::decimals(int unit)
     }
 }
 
-QString KnotcoinUnits::format(int unit, qint64 n, bool fPlus)
+QString KnotcoinUnits::format(int unit, const CAmount& nIn, bool fPlus, SeparatorStyle separators)
 {
     // Note: not using straight sprintf here because we do NOT want
     // localized number formatting.
     if(!valid(unit))
         return QString(); // Refuse to format invalid unit
+    qint64 n = (qint64)nIn;
     qint64 coin = factor(unit);
     int num_decimals = decimals(unit);
     qint64 n_abs = (n > 0 ? n : -n);
@@ -99,11 +104,13 @@ QString KnotcoinUnits::format(int unit, qint64 n, bool fPlus)
     QString quotient_str = QString::number(quotient);
     QString remainder_str = QString::number(remainder).rightJustified(num_decimals, '0');
 
-    // Right-trim excess zeros after the decimal point
-    int nTrim = 0;
-    for (int i = remainder_str.size()-1; i>=2 && (remainder_str.at(i) == '0'); --i)
-        ++nTrim;
-    remainder_str.chop(nTrim);
+    // Use SI-style thin space separators as these are locale independent and can't be
+    // confused with the decimal marker.
+    QChar thin_sp(THIN_SP_CP);
+    int q_size = quotient_str.size();
+    if (separators == separatorAlways || (separators == separatorStandard && q_size > 4))
+        for (int i = 3; i < q_size; i += 3)
+            quotient_str.insert(q_size - i, thin_sp);
 
     if (n < 0)
         quotient_str.insert(0, '-');
@@ -112,17 +119,36 @@ QString KnotcoinUnits::format(int unit, qint64 n, bool fPlus)
     return quotient_str + QString(".") + remainder_str;
 }
 
-QString KnotcoinUnits::formatWithUnit(int unit, qint64 amount, bool plussign)
+
+// NOTE: Using formatWithUnit in an HTML context risks wrapping
+// quantities at the thousands separator. More subtly, it also results
+// in a standard space rather than a thin space, due to a bug in Qt's
+// XML whitespace canonicalisation
+//
+// Please take care to use formatHtmlWithUnit instead, when
+// appropriate.
+
+QString KnotcoinUnits::formatWithUnit(int unit, const CAmount& amount, bool plussign, SeparatorStyle separators)
 {
-    return format(unit, amount, plussign) + QString(" ") + name(unit);
+    return format(unit, amount, plussign, separators) + QString(" ") + shortName(unit);
 }
 
-bool KnotcoinUnits::parse(int unit, const QString &value, qint64 *val_out)
+QString KnotcoinUnits::formatHtmlWithUnit(int unit, const CAmount& amount, bool plussign, SeparatorStyle separators)
+{
+    QString str(formatWithUnit(unit, amount, plussign, separators));
+    str.replace(QChar(THIN_SP_CP), QString(THIN_SP_HTML));
+    return QString("<span style='white-space: nowrap;'>%1</span>").arg(str);
+}
+
+
+bool KnotcoinUnits::parse(int unit, const QString &value, CAmount *val_out)
 {
     if(!valid(unit) || value.isEmpty())
         return false; // Refuse to parse invalid unit or empty string
     int num_decimals = decimals(unit);
-    QStringList parts = value.split(".");
+
+    // Ignore spaces and thin spaces when parsing
+    QStringList parts = removeSpaces(value).split(".");
 
     if(parts.size() > 2)
     {
@@ -146,12 +172,22 @@ bool KnotcoinUnits::parse(int unit, const QString &value, qint64 *val_out)
     {
         return false; // Longer numbers will exceed 63 bits
     }
-    qint64 retvalue = str.toLongLong(&ok);
+    CAmount retvalue(str.toLongLong(&ok));
     if(val_out)
     {
         *val_out = retvalue;
     }
     return ok;
+}
+
+QString KnotcoinUnits::getAmountColumnTitle(int unit)
+{
+    QString amountTitle = QObject::tr("Amount");
+    if (KnotcoinUnits::valid(unit))
+    {
+        amountTitle += " ("+KnotcoinUnits::shortName(unit) + ")";
+    }
+    return amountTitle;
 }
 
 int KnotcoinUnits::rowCount(const QModelIndex &parent) const
@@ -170,7 +206,7 @@ QVariant KnotcoinUnits::data(const QModelIndex &index, int role) const
         {
         case Qt::EditRole:
         case Qt::DisplayRole:
-            return QVariant(name(unit));
+            return QVariant(longName(unit));
         case Qt::ToolTipRole:
             return QVariant(description(unit));
         case UnitRole:
@@ -178,4 +214,9 @@ QVariant KnotcoinUnits::data(const QModelIndex &index, int role) const
         }
     }
     return QVariant();
+}
+
+CAmount KnotcoinUnits::maxMoney()
+{
+    return MAX_MONEY;
 }

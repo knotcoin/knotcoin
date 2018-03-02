@@ -1,4 +1,4 @@
-knotcoin-qt usr/bin
+usr/local/bin/knotcoin-qt usr/bin
 share/pixmaps/knotcoin32.xpm usr/share/pixmaps
 share/pixmaps/knotcoin16.xpm usr/share/pixmaps
 share/pixmaps/knotcoin128.png usr/share/pixmaps

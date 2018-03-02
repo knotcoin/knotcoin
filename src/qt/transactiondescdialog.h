@@ -1,5 +1,9 @@
-#ifndef TRANSACTIONDESCDIALOG_H
-#define TRANSACTIONDESCDIALOG_H
+// Copyright (c) 2011-2014 The Knotcoin Core developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef KNOTTCOIN_QT_TRANSACTIONDESCDIALOG_H
+#define KNOTTCOIN_QT_TRANSACTIONDESCDIALOG_H
 
 #include <QDialog>
 
@@ -24,4 +28,4 @@ private:
     Ui::TransactionDescDialog *ui;
 };
 
-#endif // TRANSACTIONDESCDIALOG_H
+#endif // KNOTTCOIN_QT_TRANSACTIONDESCDIALOG_H

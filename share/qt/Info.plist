@@ -2,34 +2,105 @@
 <!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
 <plist version="0.9">
 <dict>
-	<key>CFBundleIconFile</key>
-	<string>knotcoin.icns</string>
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
-	<key>CFBundleGetInfoString</key>
-	<string>$VERSION, Copyright © 2009-$YEAR The Knotcoin developers</string>
-	<key>CFBundleShortVersionString</key>
-	<string>$VERSION</string>
-	<key>CFBundleVersion</key>
-	<string>$VERSION</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
-	<key>CFBundleExecutable</key>
-	<string>Knotcoin-Qt</string>
-	<key>CFBundleIdentifier</key>
-	<string>org.knotcoinfoundation.Knotcoin-Qt</string>
-        <key>CFBundleURLTypes</key>
+  <key>LSMinimumSystemVersion</key>
+  <string>10.8.0</string>
+
+  <key>LSArchitecturePriority</key>
+  <array>
+    <string>x86_64</string>
+  </array>
+
+  <key>CFBundleIconFile</key>
+  <string>knotcoin.icns</string>
+
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+
+  <key>CFBundleGetInfoString</key>
+  <string>0.16.0, Copyright © 2009-2018 The Knotcoin Core developers</string>
+
+  <key>CFBundleShortVersionString</key>
+  <string>0.16.0</string>
+
+  <key>CFBundleVersion</key>
+  <string>0.16.0</string>
+
+  <key>CFBundleSignature</key>
+  <string>????</string>
+
+  <key>CFBundleExecutable</key>
+  <string>Knotcoin-Qt</string>
+  
+  <key>CFBundleName</key>
+  <string>Knotcoin-Qt</string>
+
+  <key>LSHasLocalizedDisplayName</key>
+  <true/>
+
+  <key>CFBundleIdentifier</key>
+  <string>org.knotcoinfoundation.Knotcoin-Qt</string>
+
+  <key>CFBundleURLTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleTypeRole</key>
+      <string>Editor</string>
+      <key>CFBundleURLName</key>
+      <string>org.knotcoin.KnotcoinPayment</string>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>knotcoin</string>
+      </array>
+    </dict>
+  </array>
+
+  <key>UTExportedTypeDeclarations</key>
+  <array>
+    <dict>
+      <key>UTTypeIdentifier</key>
+      <string>org.knotcoin.paymentrequest</string>
+      <key>UTTypeDescription</key>
+      <string>Knotcoin payment request</string>
+      <key>UTTypeConformsTo</key>
+      <array>
+        <string>public.data</string>
+      </array>
+      <key>UTTypeTagSpecification</key>
+      <dict>
+        <key>public.mime-type</key>
+        <string>application/x-knotcoin-payment-request</string>
+        <key>public.filename-extension</key>
         <array>
-          <dict>
-            <key>CFBundleTypeRole</key>
-            <string>Editor</string>
-            <key>CFBundleURLName</key>
-            <string>org.knotcoinfoundation.KnotcoinPayment</string>
-            <key>CFBundleURLSchemes</key>
-            <array>
-              <string>knotcoin</string>
-            </array>
-          </dict>
+          <string>knotcoinpaymentrequest</string>
         </array>
+      </dict>
+    </dict>
+  </array>
+
+  <key>CFBundleDocumentTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleTypeRole</key>
+      <string>Editor</string>
+      <key>LSItemContentTypes</key>
+      <array>
+        <string>org.knotcoin.paymentrequest</string>
+      </array>
+      <key>LSHandlerRank</key>
+      <string>Owner</string>
+    </dict>
+  </array>
+
+  <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+
+  <key>NSHighResolutionCapable</key>
+    <string>True</string>
+
+  <key>LSAppNapIsDisabled</key>
+    <string>True</string>
+  
+  <key>LSApplicationCategoryType</key>
+    <string>public.app-category.finance</string>
 </dict>
 </plist>
