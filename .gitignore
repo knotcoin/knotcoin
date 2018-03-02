@@ -1,0 +1,34 @@
+src/*.exe
+src/knotcoin
+src/knotcoind
+src/test_knotcoin
+.*.swp
+*.*~*
+*.bak
+*.rej
+*.orig
+*.o
+*.patch
+.knotcoin
+
+# Compilation and Qt preprocessor part
+*.qm
+Makefile
+knotcoin-qt
+Knotcoin-Qt.app
+
+# Unit-tests
+Makefile.test
+knotcoin-qt_test
+
+# Resources cpp
+qrc_*.cpp
+
+# Qt creator
+*.pro.user
+
+# Mac specific
+.DS_Store
+build
+
+!src/leveldb-*/Makefile

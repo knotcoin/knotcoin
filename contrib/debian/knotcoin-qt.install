@@ -1,0 +1,6 @@
+knotcoin-qt usr/bin
+share/pixmaps/knotcoin32.xpm usr/share/pixmaps
+share/pixmaps/knotcoin16.xpm usr/share/pixmaps
+share/pixmaps/knotcoin128.png usr/share/pixmaps
+debian/knotcoin-qt.desktop usr/share/applications
+debian/knotcoin-qt.protocol usr/share/kde4/services/

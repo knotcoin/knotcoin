@@ -1,0 +1,12 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Knotcoin
+Comment=Knotcoin P2P Cryptocurrency
+Comment[fr]=Knotcoin, monnaie virtuelle cryptographique pair à pair
+Comment[tr]=Knotcoin, eşten eşe kriptografik sanal para birimi
+Exec=/usr/bin/knotcoin-qt %u
+Terminal=false
+Type=Application
+Icon=/usr/share/pixmaps/knotcoin128.png
+MimeType=x-scheme-handler/knotcoin;
+Categories=Office;
